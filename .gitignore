@@ -1,0 +1,5 @@
+node_modules/
+.edge-game-profile/
+.game-browser-profile/
+chat-log.txt
+*.log

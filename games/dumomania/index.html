@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="bg">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Думомания</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@500;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="stage">
+  <div class="glow g1"></div><div class="glow g2"></div>
+
+  <div id="rules"><div><b>👑 Кралска атака:</b> При влизане в класацията 5 пъти подред, получаваш правото да атакуваш топ 3 играчите. Напиши число от 1 до 3 в коментар, за да избереш кого от лидерите да свалиш.</div></div>
+
+  <!-- Горе: класация + победител + таймер -->
+  <div id="top">
+    <div id="lbPanel" class="panel">
+      <div class="panel-title">ТОП ИГРАЧИ</div>
+      <div id="lbList"></div>
+      <div id="msgBar">Напиши ЕДНА дума в чата, за да познаеш!</div>
+    </div>
+    <div id="rightCol">
+      <div id="winnerPanel" class="panel">
+        <div class="panel-title small">ПОБЕДИТЕЛ НА<br>ПРЕДНИЯ РУНД</div>
+        <div id="winner"></div>
+      </div>
+      <div id="timer">⏱ <span id="timeText">00:00</span></div>
+    </div>
+  </div>
+
+  <div id="topic">Намери думите от тези букви!</div>
+  <div id="letters"></div>
+
+  <div id="board" class="panel">
+    <div id="words"></div>
+    <div id="strip"></div>
+  </div>
+
+  <div id="footer">➕ Последвай и ела във фен клуба! 💜</div>
+
+  <div id="banner" class="hidden"><div id="bannerTitle"></div><div id="bannerText"></div></div>
+  <div id="screen" class="hidden"></div>
+  <div id="status"></div>
+</div>
+
+<!-- Тестов панел (клавиш T) -->
+<div id="testPanel" class="tool hidden">
+  <b>Тестов режим</b>
+  <button id="demoBtn" style="background:#15803d">▶ Пусни фейк зрители</button>
+  <input id="tUser" value="Тестов играч" placeholder="Име">
+  <input id="tText" placeholder="Напиши дума и натисни Enter">
+  <div class="btns">
+
+    <button data-t="Rose">🌹 Роза</button>
+    <button data-t="TikTok">🥊 TikTok</button>
+    <button data-t="Perfume">🧴 Парфюм</button>
+    <button data-t="follow">➕ Последване</button>
+
+  </div>
+  <small>T – скрий/покажи · S – настройки · D – фейк зрители</small>
+</div>
+
+<!-- Диагностика на чата (клавиш L) -->
+<div id="debugPanel" class="tool hidden"></div>
+
+<!-- Настройки (клавиш S) -->
+<div id="settings" class="tool hidden"></div>
+
+<script src="puzzles.js"></script>
+<script src="game.js"></script>
+</body>
+</html>
