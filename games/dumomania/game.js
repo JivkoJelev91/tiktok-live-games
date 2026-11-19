@@ -101,39 +101,27 @@ const sfx = {
   tick:   () => tone([1000], 0.04, 'sine', 0.05),
   end:    () => tone([784, 659, 523, 392], 0.15, 'sawtooth', 0.05)
 };
-// ---------- Фонова музика (генерира се в браузъра, без файлове) ----------
-const CHORDS = [[60, 64, 67], [55, 59, 62], [57, 60, 64], [53, 57, 60]];  // До – Сол – Ла минор – Фа
-const mtof = m => 440 * 2 ** ((m - 69) / 12);
-let musicGain = null, musicTimer = null, nextNoteTime = 0, step = 0;
-function note(m, t, dur, type, vol) {
-  const o = actx.createOscillator(), g = actx.createGain();
-  o.type = type; o.frequency.value = mtof(m);
-  g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(vol, t + 0.02);
-  g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
-  o.connect(g).connect(musicGain); o.start(t); o.stop(t + dur + 0.05);
+// ---------- Фонова музика (плейлист от папка music/, върти се в кръг) ----------
+const PLAYLIST = Array.from({ length: 10 }, (_, i) => `music/${String(i + 1).padStart(2, '0')}.mp3`);
+const player = new Audio();
+let track = 0;
+player.preload = 'auto';
+player.src = PLAYLIST[track];
+function nextTrack() {
+  track = (track + 1) % PLAYLIST.length;                    // след последната – пак от първата
+  player.src = PLAYLIST[track];
+  if (S.music) player.play().catch(() => {});
 }
-function scheduleMusic() {
-  const fast = round?.active && round.timeLeft <= 10;
-  const spb = 60 / (fast ? 140 : 100) / 2;                 // осмини; ускорява в последните 10 сек.
-  while (nextNoteTime < actx.currentTime + 0.3) {
-    const ch = CHORDS[Math.floor(step / 8) % 4], s = step % 8;
-    if (s === 0) { ch.forEach(m => note(m - 12, nextNoteTime, spb * 8, 'triangle', 0.05)); note(ch[0] - 24, nextNoteTime, spb * 4, 'sine', 0.14); }
-    if (s === 4) note(ch[0] - 24, nextNoteTime, spb * 4, 'sine', 0.11);
-    if (s === 2 || s === 6) note(ch[2] + 12, nextNoteTime, spb * 0.6, 'square', 0.012);
-    note(ch[[0, 1, 2, 1, 0, 2, 1, 2][s]] + 12, nextNoteTime, spb * 1.6, 'sine', 0.045);
-    nextNoteTime += spb; step++;
-  }
-}
+let badTracks = 0;
+player.addEventListener('ended', nextTrack);
+player.addEventListener('playing', () => { badTracks = 0; });
+player.addEventListener('error', () => {                    // липсваща/счупена песен – прескачаме я
+  if (++badTracks < PLAYLIST.length) nextTrack();
+});
 function startMusic() {
-  try {
-    actx ||= new AudioContext(); actx.resume?.();
-    if (!musicGain) { musicGain = actx.createGain(); musicGain.connect(actx.destination); }
-    musicGain.gain.value = S.music ? S.musicVol / 100 : 0;
-    if (!S.music) { clearInterval(musicTimer); musicTimer = null; return; }
-    if (musicTimer) return;
-    nextNoteTime = actx.currentTime + 0.1;
-    musicTimer = setInterval(scheduleMusic, 100);
-  } catch {}
+  player.volume = Math.min(1, Math.max(0, S.musicVol / 100));
+  if (S.music) player.play().catch(() => {});
+  else player.pause();
 }
 // браузърът пуска звук чак след първо кликване/натискане
 addEventListener('pointerdown', startMusic, { once: true });
@@ -550,8 +538,7 @@ function renderSettings() {
     <div class="line">Време за рунд (сек): <input type="number" id="sRound" min="10" max="600" step="10" value="${S.roundSeconds}">
       Брой думи: <select id="sSize">${[5, 7, 8, 10].map(n => `<option ${n == S.boardSize ? 'selected' : ''}>${n}</option>`).join('')}</select></div>
     <div class="line"><label><input type="checkbox" id="sMusic" ${S.music ? 'checked' : ''}> Фонова музика</label>
-      Сила: <input type="range" id="sVol" min="0" max="100" value="${S.musicVol}"></div>
-    <h3>TikTok събития</h3>
+      Сила: <input type="range" id="sVol" min="0" max="100" value="${S.musicVol}"></div>    <h3>TikTok събития</h3>
     <table><tr><th>Вкл.</th><th>Събитие</th><th>Брой*</th><th>Награда</th></tr>
     ${S.events.map((e, i) => `<tr data-i="${i}">
       <td><input type="checkbox" data-k="on" ${e.on ? 'checked' : ''}></td>

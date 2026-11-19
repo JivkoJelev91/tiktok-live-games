@@ -28,7 +28,17 @@ const server = http.createServer((req, res) => {
   if (!file.startsWith(PUBLIC_DIR)) { res.writeHead(403).end(); return; }
   fs.readFile(file, (err, data) => {
     if (err) { res.writeHead(404).end('Not found'); return; }
-    res.writeHead(200, { 'Content-Type': (MIME[path.extname(file)] || 'application/octet-stream') + '; charset=utf-8', 'Cache-Control': 'no-store' });
+    const type = MIME[path.extname(file)] || 'application/octet-stream';
+    const isText = /^text\//.test(type);
+    const range = !isText && /^bytes=(\d*)-(\d*)$/.exec(req.headers.range || '');
+    if (range) {                                           // нужно за превъртане на песните
+      const start = range[1] ? +range[1] : Math.max(0, data.length - +range[2]);
+      const end = range[1] && range[2] ? Math.min(+range[2], data.length - 1) : data.length - 1;
+      if (start > end || start >= data.length) { res.writeHead(416, { 'Content-Range': `bytes */${data.length}` }).end(); return; }
+      res.writeHead(206, { 'Content-Type': type, 'Accept-Ranges': 'bytes', 'Content-Range': `bytes ${start}-${end}/${data.length}`, 'Content-Length': end - start + 1, 'Cache-Control': 'max-age=3600' });
+      res.end(data.subarray(start, end + 1)); return;
+    }
+    res.writeHead(200, { 'Accept-Ranges': 'bytes', 'Content-Type': isText ? type + '; charset=utf-8' : type, 'Content-Length': data.length, 'Cache-Control': isText ? 'no-store' : 'max-age=3600' });
     res.end(data);
   });
 });
